@@ -1,9 +1,12 @@
-package com.abc
+package com.abc.bank
 
 import scala.collection.mutable.ListBuffer
+import scala.util.{Try, Success, Failure}
+import com.abc.bank.customer.Customer
+import com.abc.bank.account.Account
 
 class Bank {
-  var customers = new ListBuffer[Customer]
+  val customers = new ListBuffer[Customer]
 
   def addCustomer(customer: Customer) {
     customers += customer
@@ -27,15 +30,19 @@ class Bank {
   }
 
   def getFirstCustomer: String = {
-    try {
-      customers = null
-      customers(0).name
+    customers.toList match {
+      case Nil => "There are no customers"
+      case c :: cs => c.name
     }
-    catch {
-      case e: Exception => {
-        e.printStackTrace
-        return "Error"
-      }
+  }
+
+  def transferBetweenAccounts(customer: Customer, to: Account, from: Account, amount: Double): Unit = {
+    require(0.0 < amount)
+    synchronized {
+      val fromTotal = from.sumTransactions()
+      val amountAdj = if (amount < fromTotal) amount else fromTotal
+      from.withdraw(amountAdj)
+      to.deposit(amountAdj)
     }
   }
 
